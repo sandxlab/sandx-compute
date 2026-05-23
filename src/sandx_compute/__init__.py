@@ -1,7 +1,14 @@
-"""sandx-compute — Distributed compute orchestration."""
+"""sandx-compute — distributed compute orchestration for the SandX platform."""
 
-from sandx_compute.scheduler import Scheduler
-from sandx_compute.registry import ResourceRegistry
+from sandx_compute.registry import ComputeNode, NodeStatus, ResourceRegistry
+from sandx_compute.scheduler import Job, JobStatus, Scheduler
 
-__version__ = "0.1.0.dev0"
-__all__ = ["Scheduler", "ResourceRegistry"]
+__version__ = "0.1.0"
+__all__ = [
+    "ResourceRegistry",
+    "ComputeNode",
+    "NodeStatus",
+    "Scheduler",
+    "Job",
+    "JobStatus",
+]
