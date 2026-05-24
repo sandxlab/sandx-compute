@@ -140,6 +140,17 @@ class Scheduler:
         else:
             job.status = "cancelled"
 
+    def get_job(self, job_id: str) -> Job | None:
+        """Return a Job by ID, or None if not found.
+
+        Args:
+            job_id: The UUID string returned by submit().
+
+        Returns:
+            The Job object, or None if job_id is unknown.
+        """
+        return self._jobs.get(job_id)
+
     def pending_jobs(self) -> list[Job]:
         """Return all jobs currently in pending state."""
         return [j for j in self._jobs.values() if j.status == "pending"]
