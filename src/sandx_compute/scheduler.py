@@ -193,3 +193,10 @@ class Scheduler:
             self.registry.update_status(job.node_id, "available")
         job.status = terminal_status
         job.node_id = None
+        self._retry_pending()
+
+    def _retry_pending(self) -> None:
+        """Attempt to schedule any jobs that are still pending after a node is freed."""
+        for job in list(self._jobs.values()):
+            if job.status == "pending":
+                self._try_schedule(job)

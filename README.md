@@ -31,6 +31,7 @@ Submit job  →  Scheduler  →  ResourceRegistry  →  Allocated node
 | `ResourceRegistry` — node registration and capability tracking | **Working** |
 | `Scheduler` — requirement-aware first-fit allocation | **Working** |
 | Job lifecycle — submit, complete, fail, cancel | **Working** |
+| Pending queue retry on node release | **Working** |
 | Distributed consensus locking | Planned (Phase 3) |
 | PyPI package | **Working** |
 

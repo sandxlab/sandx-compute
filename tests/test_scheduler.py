@@ -184,3 +184,75 @@ def test_node_reuse_after_complete(scheduler):
 
     job2 = scheduler.submit("task")
     assert job2.status == "running"
+
+
+# ---------------------------------------------------------------------------
+# pending queue retry
+# ---------------------------------------------------------------------------
+
+def test_pending_job_scheduled_after_complete(scheduler):
+    """A pending job should be auto-scheduled when a suitable node is freed."""
+    # Fill all GPU nodes
+    gpu_job1 = scheduler.submit("gpu-1", {"gpu": True})
+    gpu_job2 = scheduler.submit("gpu-2", {"gpu": True})
+    assert gpu_job1.status == "running"
+    assert gpu_job2.status == "running"
+
+    # This job cannot run yet — all GPU nodes busy
+    waiter = scheduler.submit("waiter", {"gpu": True})
+    assert waiter.status == "pending"
+
+    # Completing one GPU job should trigger retry and schedule the waiter
+    scheduler.complete(gpu_job1)
+    assert waiter.status == "running"
+    assert waiter.node_id is not None
+
+
+def test_pending_job_scheduled_after_fail(scheduler):
+    """A pending job should be auto-scheduled when a node is freed via fail()."""
+    gpu_job1 = scheduler.submit("gpu-1", {"gpu": True})
+    gpu_job2 = scheduler.submit("gpu-2", {"gpu": True})
+    waiter = scheduler.submit("waiter", {"gpu": True})
+    assert waiter.status == "pending"
+
+    scheduler.fail(gpu_job1)
+    assert waiter.status == "running"
+
+
+def test_pending_job_not_scheduled_if_requirements_unmet(scheduler):
+    """A pending job requiring more VRAM than any free node should stay pending."""
+    gpu_job = scheduler.submit("gpu", {"gpu": True, "min_vram_gb": 80})
+    assert gpu_job.status == "running"
+    assert gpu_job.node_id == "gpu-1"  # A100 80GB
+
+    # Needs more VRAM than any node has — should never schedule
+    impossible = scheduler.submit("impossible", {"gpu": True, "min_vram_gb": 200})
+    assert impossible.status == "pending"
+
+    scheduler.complete(gpu_job)
+    assert impossible.status == "pending"  # still no node meets requirement
+
+
+def test_multiple_pending_jobs_retry_on_release(scheduler):
+    """When multiple pending jobs exist, retry fires for all on each release.
+
+    The fixture has 3 nodes (cpu-1, gpu-1, gpu-2). Filling all 3 then adding
+    2 more pending jobs: when one node is freed, exactly one pending job runs
+    (first-fit), the other stays pending.
+    """
+    j1 = scheduler.submit("t1", {"gpu": True})   # gpu-1
+    j2 = scheduler.submit("t2", {"gpu": True})   # gpu-2
+    cpu = scheduler.submit("t3")                  # cpu-1
+    assert j1.status == j2.status == cpu.status == "running"
+
+    p1 = scheduler.submit("p1")   # pending
+    p2 = scheduler.submit("p2")   # pending
+    assert p1.status == "pending"
+    assert p2.status == "pending"
+
+    # Free the CPU node — one pending job should get it
+    scheduler.complete(cpu)
+    running_count = sum(1 for j in [p1, p2] if j.status == "running")
+    pending_count = sum(1 for j in [p1, p2] if j.status == "pending")
+    assert running_count == 1
+    assert pending_count == 1
