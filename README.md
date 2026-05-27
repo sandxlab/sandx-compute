@@ -32,7 +32,7 @@ Submit job  →  Scheduler  →  ResourceRegistry  →  Allocated node
 | `Scheduler` — requirement-aware first-fit allocation | **Working** |
 | Job lifecycle — submit, complete, fail, cancel | **Working** |
 | Distributed consensus locking | Planned (Phase 3) |
-| PyPI package | Planned |
+| PyPI package | **Working** |
 
 ## Installation
 
