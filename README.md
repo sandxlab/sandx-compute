@@ -48,6 +48,15 @@ cd sandx-compute
 pip install -e ".[dev]"
 ```
 
+## Demo
+
+```bash
+pip install sandx-compute
+python -m examples.schedule_jobs
+```
+
+Registers a 5-node compute cluster (CPU + GPU nodes), submits 6 jobs with mixed requirements, shows allocation decisions, and walks through the full job lifecycle — no external data required.
+
 ## Quick Start
 
 ```python
